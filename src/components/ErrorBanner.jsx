@@ -16,7 +16,14 @@ export default function ErrorBanner({ errors }) {
         marginTop: '0.5rem',
       }}
     >
-      <div style={{ fontWeight: 700, fontSize: 12, color: '#8a1a1a', marginBottom: 4 }}>
+      <div
+        style={{
+          fontWeight: 700,
+          fontSize: 12,
+          color: '#8a1a1a',
+          marginBottom: 4,
+        }}
+      >
         {errors.length} issue{errors.length > 1 ? 's' : ''} found
       </div>
       {errors.map((e, i) => (

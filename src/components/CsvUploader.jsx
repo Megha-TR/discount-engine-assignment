@@ -7,7 +7,13 @@
 
 import { useRef } from 'react'
 
-export default function CsvUploader({ label, description, onLoad, hasData, fileName }) {
+export default function CsvUploader({
+  label,
+  description,
+  onLoad,
+  hasData,
+  fileName,
+}) {
   const inputRef = useRef(null)
 
   function handleFile(e) {
@@ -42,7 +48,9 @@ export default function CsvUploader({ label, description, onLoad, hasData, fileN
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
         <span style={{ fontSize: 20 }}>{hasData ? '✅' : '📄'}</span>
         <div>
-          <div style={{ fontWeight: 700, fontSize: 13, color: '#131A48' }}>{label}</div>
+          <div style={{ fontWeight: 700, fontSize: 13, color: '#131A48' }}>
+            {label}
+          </div>
           <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>
             {hasData ? fileName : description}
           </div>

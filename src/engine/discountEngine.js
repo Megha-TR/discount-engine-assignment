@@ -8,7 +8,7 @@
  *
  * DiscountRule {
  *   ruleId:    string       — e.g. "RULE-01"
- *   scope:     "brand" | "platform"
+ *   scope:     "brand" | "platform" | "cart"
  *   appliesTo: string       — e.g. "Natura Casa", "Amazon India"
  *   type:      "percentage" | "flat"
  *   value:     number       — percentage as integer (15 = 15%), flat in rupees
@@ -57,10 +57,10 @@ export function ruleMatchesItem(item, rule) {
  */
 export function calculateDiscountAmount(price, rule) {
   if (rule.type === 'percentage') {
-    return Math.round(price * rule.value / 100)
+    return Math.min(price, Math.max(0, Math.round((price * rule.value) / 100)))
   }
   if (rule.type === 'flat') {
-    return rule.value
+    return Math.min(price, Math.max(0, Math.round(rule.value)))
   }
   return 0
 }
@@ -119,7 +119,7 @@ export function applyDiscounts(item, rules) {
     const sorted = [...nonStackable].sort(
       (a, b) =>
         calculateDiscountAmount(item.basePrice, b) -
-        calculateDiscountAmount(item.basePrice, a)
+        calculateDiscountAmount(item.basePrice, a),
     )
     winner = sorted[0]
     skipped = sorted.slice(1)
@@ -133,13 +133,15 @@ export function applyDiscounts(item, rules) {
   if (winner) {
     price -= calculateDiscountAmount(price, winner)
     appliedRules.push(winner.ruleId)
-    reasoningParts.push(ruleToReasoning(winner))
+    reasoningParts.push(
+      `${ruleToReasoning(winner)} (${winner.ruleId})${skipped.length ? '; best saving over ' + skipped.map((r) => r.ruleId).join(', ') : ''}`,
+    )
   }
 
   for (const rule of stackable) {
     price -= calculateDiscountAmount(price, rule)
     appliedRules.push(rule.ruleId)
-    reasoningParts.push(ruleToReasoning(rule))
+    reasoningParts.push(`${ruleToReasoning(rule)} (${rule.ruleId}, stacked)`)
   }
 
   const finalPrice = Math.round(price)
@@ -171,4 +173,41 @@ export function processCart(cartItems, rules) {
  */
 export function cartTotal(results) {
   return results.reduce((sum, r) => sum + r.finalPrice, 0)
+}
+
+/** Cart thresholds always use the post-item subtotal, before any cart offers.
+ * Non-stackable cart offers compete, then stackable offers apply in input order.
+ */
+export function priceCart(cartItems, rules) {
+  const items = processCart(cartItems, rules)
+  const subtotal = cartTotal(items)
+  const eligible = cartItems.length
+    ? rules.filter((r) => r.scope === 'cart' && subtotal >= r.minCartValue)
+    : []
+  const candidates = eligible
+    .filter((r) => !r.stackable)
+    .sort(
+      (a, b) =>
+        calculateDiscountAmount(subtotal, b) -
+        calculateDiscountAmount(subtotal, a),
+    )
+  const selected = [
+    ...candidates.slice(0, 1),
+    ...eligible.filter((r) => r.stackable),
+  ]
+  let total = subtotal
+  const cartOffers = selected
+    .map((rule) => {
+      const saving = calculateDiscountAmount(total, rule)
+      total -= saving
+      return { ...rule, saving }
+    })
+    .filter((r) => r.saving > 0)
+  return {
+    items,
+    subtotal,
+    cartOffers,
+    total,
+    savings: cartItems.reduce((sum, item) => sum + item.basePrice, 0) - total,
+  }
 }

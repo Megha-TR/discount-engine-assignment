@@ -31,3 +31,10 @@ pnpm-debug.log*
 # OS files
 .DS_Store
 Thumbs.db
+
+# Local secrets and test output
+.env.*
+!.env.example
+test-results/
+playwright-report/
+.vercel/
