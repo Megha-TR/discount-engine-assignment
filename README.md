@@ -4,14 +4,14 @@ A working extension of [Opptra's starter](https://github.com/opptra/discount-eng
 
 **Repository:** [Megha-TR/discount-engine-assignment](https://github.com/Megha-TR/discount-engine-assignment)
 
-**Deployment status:** Vercel deployment is pending account reauthentication. The live URL will be added after deployment and verification.
+**Live demo:** [opptra-discount-engine-beta.vercel.app](https://opptra-discount-engine-beta.vercel.app)
 
 ## Run locally (3 steps)
 
 Requires Node.js 20.19+ (22 LTS recommended).
 
 1. `npm ci`
-2. Copy `.env.example` to `.env` and set `GEMINI_API_KEY` for natural-language parsing. Gemini is the default provider; `GEMINI_MODEL` defaults to `gemini-2.5-flash`, matching the verified CRM configuration. To use OpenAI instead, set `LLM_PROVIDER=openai` and `OPENAI_API_KEY` (`OPENAI_MODEL` defaults to `gpt-4o-mini`). CSV, PDF and pricing work without a key.
+2. Copy `.env.example` to `.env` and set `GEMINI_API_KEY` for natural-language parsing. Gemini is the default provider; `GEMINI_MODEL` defaults to `gemini-2.5-flash`. To use OpenAI instead, set `LLM_PROVIDER=openai` and `OPENAI_API_KEY` (`OPENAI_MODEL` defaults to `gpt-4o-mini`). CSV, PDF and pricing work without a key.
 3. `npm run dev` and open http://localhost:5173.
 
 Never use a `VITE_` prefix for secrets: those variables are bundled into the browser.
@@ -96,4 +96,8 @@ Unit tests cover all sample prices, cart thresholds at/below the boundary, post-
 
 Browser tests use local Google Chrome if installed, or Playwright Chromium. On machines without Chrome, run `npx playwright install chromium` first. LLM browser tests mock the API; live provider verification still requires an API key. The server uses native `fetch`; no provider SDK is needed.
 
-Live Gemini smoke check (23 November 2026): `gemini-2.5-flash` correctly parsed the assignment brand, flat-platform and cart-threshold examples, and returned a clarification for the ambiguous big-orders example. Credentials remain in the ignored local `.env`; Vercel requires its own environment configuration. These four checks are a smoke test, not a general accuracy evaluation.
+Live Gemini smoke check (23 November 2026): `gemini-2.5-flash` correctly parsed the assignment brand, flat-platform and cart-threshold examples, and returned a clarification for the ambiguous big-orders example. Credentials are configured server-side in the ignored local `.env` and Vercel environment variables; they are never committed. These four checks are a smoke test, not a general accuracy evaluation.
+
+Production verification: the public Vercel site passed sample pricing (₹5,339), actual PDF cart upload, live Gemini preview/confirmation with recalculation (₹5,026 after the sample 20% brand offer), and ambiguous-input clarification. No application errors were observed in the browser.
+
+The current deployment was published with the Vercel CLI. To publish future changes after linking the project and signing in, run `vercel --prod`; automatic deployments from GitHub are not currently connected.
